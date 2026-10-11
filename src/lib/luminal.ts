@@ -26,6 +26,8 @@ export interface GroundingContext {
   content: string;
   sourceExcerpt: string;
   sourceTitle: string | null;
+  sourceType: string;
+  occurredAt: string | null;
 }
 
 export interface GroundedAnswer {
@@ -189,7 +191,9 @@ export async function generateGroundedAnswer(
 Memory: ${context.title}
 Claim: ${context.content}
 Original excerpt: "${context.sourceExcerpt}"
-Source: ${context.sourceTitle ?? "Untitled source"}`,
+Source: ${context.sourceTitle ?? "Untitled source"}
+Source type: ${context.sourceType}
+Source timestamp: ${context.occurredAt ?? "Not provided"}`,
     )
     .join("\n\n");
 
@@ -208,7 +212,7 @@ Source: ${context.sourceTitle ?? "Untitled source"}`,
         {
           role: "system",
           content:
-            "Answer only from the supplied memory evidence. If the evidence is insufficient, say so plainly. Cite every factual claim with bracketed evidence numbers like [1]. Return valid JSON only.",
+            "Answer only from the supplied memory evidence. If the evidence is insufficient, say so plainly. Clearly label any inference as an inference, never present it as a fact. Cite every factual claim with bracketed evidence numbers like [1]. Return valid JSON only.",
         },
         {
           role: "user",

@@ -10,7 +10,8 @@ if (!uri) {
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
-    strict: true,
+    // Text indexes are supported by Atlas but excluded from Stable API strict mode.
+    strict: false,
     deprecationErrors: true,
   },
 });
@@ -25,7 +26,27 @@ const validators = {
         rawText: { bsonType: "string", minLength: 1 },
         sourceType: {
           bsonType: "string",
-          enum: ["note", "conversation", "meeting", "other"],
+          enum: ["note", "conversation", "meeting", "calendar", "other"],
+        },
+        sourceIdentifier: { bsonType: "string", minLength: 1 },
+        occurredAt: { bsonType: "date" },
+        endedAt: { bsonType: "date" },
+        metadata: {
+          bsonType: "object",
+          properties: {
+            location: { bsonType: "string" },
+            attendees: { bsonType: "array", items: { bsonType: "string" } },
+            importFileName: { bsonType: "string" },
+            calendarUid: { bsonType: "string" },
+            recurrenceRule: { bsonType: "string" },
+            importType: { bsonType: "string", enum: ["calendar", "messages"] },
+            conversationIdentifier: { bsonType: "string" },
+            participants: {
+              bsonType: "array",
+              items: { bsonType: "string" },
+            },
+            messageCount: { bsonType: "int", minimum: 1 },
+          },
         },
         memoryCount: { bsonType: "int", minimum: 0 },
         createdAt: { bsonType: "date" },
@@ -105,11 +126,28 @@ try {
 
   const sourceIndexes = await database.collection("sources").createIndexes([
     { key: { createdAt: -1 }, name: "createdAt_desc" },
+    {
+      key: { sourceIdentifier: 1 },
+      name: "unique_sourceIdentifier",
+      unique: true,
+      sparse: true,
+    },
   ]);
   const memoryIndexes = await database.collection("memories").createIndexes([
     { key: { sourceId: 1, createdAt: -1 }, name: "source_createdAt" },
     { key: { kind: 1, createdAt: -1 }, name: "kind_createdAt" },
     { key: { tags: 1 }, name: "tags" },
+    {
+      key: {
+        title: "text",
+        content: "text",
+        sourceExcerpt: "text",
+        tags: "text",
+        people: "text",
+      },
+      name: "memory_text_search",
+      weights: { title: 8, content: 5, sourceExcerpt: 3, tags: 2, people: 2 },
+    },
   ]);
 
   console.log(

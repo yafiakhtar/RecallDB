@@ -1,0 +1,3 @@
+text,sender,timestamp,conversationIdentifier,recipients
+"Can you bring the MongoDB diagram, including the vector index?",Maya Chen,2026-10-11T17:10:00-04:00,demo-direct-chat,"Jordan Lee"
+"Yes, I will bring it to the final review.",Jordan Lee,2026-10-11T17:12:00-04:00,demo-direct-chat,"Maya Chen"

@@ -1,0 +1,25 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//RecallDB//Synthetic Demo Calendar//EN
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+UID:recalldb-demo-team-sync-20261011@example.test
+DTSTAMP:20261011T160000Z
+DTSTART:20261011T203000Z
+DTEND:20261011T210000Z
+SUMMARY:RecallDB final team sync
+DESCRIPTION:Review Atlas Vector Search results and confirm the 90-second demo flow. Jordan will verify retrieval and Maya will record the demo.
+LOCATION:Hackathon table 12
+ATTENDEE;CN=Jordan Lee:mailto:jordan@example.test
+ATTENDEE;CN=Maya Chen:mailto:maya@example.test
+END:VEVENT
+BEGIN:VEVENT
+UID:recalldb-demo-submission-20261011@example.test
+DTSTAMP:20261011T160000Z
+DTSTART:20261011T233000Z
+DTEND:20261011T234500Z
+SUMMARY:Submit RecallDB
+DESCRIPTION:Upload the GitHub repository and demo video before the 8 PM Eastern deadline.
+LOCATION:Penn State
+END:VEVENT
+END:VCALENDAR

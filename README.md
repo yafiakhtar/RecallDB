@@ -1,6 +1,6 @@
 # RecallDB
 
-RecallDB is a personal AI memory engine built for **c0mpiled-15 at Penn State**. Paste a messy note, conversation, or meeting transcript; RecallDB extracts durable memories, stores them with their original source in MongoDB Atlas, and retrieves them later through natural-language Vector Search.
+RecallDB is a personal AI memory engine built for **c0mpiled-15 at Penn State**. Paste messy text or review and import calendar events and user-provided message exports; RecallDB extracts durable memories, stores them with their original source in MongoDB Atlas, and retrieves them later through natural-language Vector Search.
 
 ## Why MongoDB
 
@@ -30,9 +30,13 @@ Natural-language query ─────>├─ memories
 ## Features
 
 - AI extraction of people, ideas, decisions, tasks, and facts
+- Review-first `.ics` calendar import with event times, locations, and attendees
+- Review-first CSV/JSON message import grouped chronologically by conversation
+- Duplicate calendar protection using a sparse unique MongoDB source identifier
 - Real MongoDB Atlas persistence with validated collections
 - Local sentence-transformer embeddings with no additional API credential
 - MongoDB Atlas Vector Search with relevance scores
+- Automatic MongoDB text-search fallback if vector retrieval is unavailable
 - Retrieval-augmented answers grounded in saved memories
 - Exact excerpts and original-source references
 - Responsive black-and-white demo interface
@@ -89,6 +93,10 @@ Open [http://localhost:3000](http://localhost:3000). The first embedding request
 | --- | --- |
 | `GET /api/health` | Verify the live Atlas connection |
 | `POST /api/sources` | Extract, embed, and persist memories with their source |
+| `POST /api/imports/calendar/preview` | Parse an `.ics` file and flag duplicates without AI processing |
+| `POST /api/imports/calendar/commit` | Process one user-approved calendar event through the shared ingestion pipeline |
+| `POST /api/imports/messages/preview` | Parse and group a CSV/JSON message export without AI processing |
+| `POST /api/imports/messages/commit` | Process one user-approved conversation segment through shared ingestion |
 | `POST /api/search` | Run semantic retrieval through Atlas Vector Search |
 | `POST /api/answer` | Retrieve memories and generate a cited, grounded answer |
 
@@ -99,4 +107,18 @@ npm run lint
 npm run build
 ```
 
-The demo data is synthetic. Secrets stay in `.env.local`, which is excluded from Git.
+### Message import schema
+
+JSON may be an array or `{ "messages": [...] }`. CSV uses the same field names as headers.
+
+| Field | Required | Format |
+| --- | --- | --- |
+| `text` | Yes | Message body |
+| `sender` | Yes | Sender name or address |
+| `timestamp` | Yes | ISO 8601 timestamp |
+| `conversationIdentifier` | Yes | Stable thread or conversation ID |
+| `recipients` | No | JSON string array, or `;`/`|`-separated CSV value |
+
+RecallDB accepts only files the user chooses. It does not read the macOS Messages database or perform live synchronization.
+
+The checked-in [`demo/recalldb-calendar-demo.ics`](demo/recalldb-calendar-demo.ics), [`demo/recalldb-messages-demo.json`](demo/recalldb-messages-demo.json), and [`demo/recalldb-messages-demo.csv`](demo/recalldb-messages-demo.csv) files are synthetic. Secrets stay in `.env.local`, which is excluded from Git.

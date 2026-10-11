@@ -35,6 +35,8 @@ export async function POST(request: Request) {
         content: result.content,
         sourceExcerpt: result.sourceExcerpt,
         sourceTitle: result.source?.title ?? null,
+        sourceType: result.source?.sourceType ?? "unknown",
+        occurredAt: result.source?.occurredAt ?? null,
       })),
     );
     const citationNumbers =
@@ -54,6 +56,8 @@ export async function POST(request: Request) {
           sourceExcerpt: result.sourceExcerpt,
           sourceId: result.source?.id ?? null,
           sourceTitle: result.source?.title ?? null,
+          sourceType: result.source?.sourceType ?? "unknown",
+          occurredAt: result.source?.occurredAt ?? null,
           score: result.score,
         };
       }),

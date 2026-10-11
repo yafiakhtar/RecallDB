@@ -1,0 +1,25 @@
+{
+  "messages": [
+    {
+      "text": "I can verify the Atlas search results before the final sync.",
+      "sender": "Jordan Lee",
+      "timestamp": "2026-10-11T18:42:00-04:00",
+      "conversationIdentifier": "recalldb-team",
+      "recipients": ["Maya Chen", "Sam Rivera"]
+    },
+    {
+      "text": "Great. I will record the 90-second demo after you confirm retrieval.",
+      "sender": "Maya Chen",
+      "timestamp": "2026-10-11T18:45:00-04:00",
+      "conversationIdentifier": "recalldb-team",
+      "recipients": ["Jordan Lee", "Sam Rivera"]
+    },
+    {
+      "text": "Let us keep the submission checklist in the README.",
+      "sender": "Sam Rivera",
+      "timestamp": "2026-10-11T18:44:00-04:00",
+      "conversationIdentifier": "recalldb-team",
+      "recipients": ["Jordan Lee", "Maya Chen"]
+    }
+  ]
+}

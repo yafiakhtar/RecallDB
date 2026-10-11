@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { embedTexts, memoryEmbeddingText } from "@/lib/embeddings";
-import { extractMemories } from "@/lib/luminal";
-import { SOURCE_TYPES, type MemoryDocument, type SourceDocument } from "@/lib/models";
-import { getDatabase } from "@/lib/mongodb";
+import { ingestSource } from "@/lib/ingestion";
+import { SOURCE_TYPES } from "@/lib/models";
 
 interface IngestRequest {
   rawText?: unknown;
@@ -36,68 +34,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const extracted = await extractMemories(rawText);
-    if (extracted.length === 0) {
+    const result = await ingestSource({ rawText, title, sourceType });
+    if (!result) {
       return NextResponse.json(
         { error: "No meaningful memories were found in that text." },
         { status: 422 },
       );
     }
 
-    const embeddings = await embedTexts(extracted.map(memoryEmbeddingText));
-
-    const database = await getDatabase();
-    const createdAt = new Date();
-    const source: SourceDocument = {
-      ...(title ? { title: title.slice(0, 160) } : {}),
-      rawText,
-      sourceType,
-      memoryCount: extracted.length,
-      createdAt,
-    };
-    const sourceResult = await database
-      .collection<SourceDocument>("sources")
-      .insertOne(source);
-
-    const memories: MemoryDocument[] = extracted.map((memory, index) => ({
-      ...memory,
-      sourceId: sourceResult.insertedId,
-      embedding: embeddings[index],
-      createdAt,
-    }));
-
-    try {
-      const memoryResult = await database
-        .collection<MemoryDocument>("memories")
-        .insertMany(memories);
-
-      return NextResponse.json(
-        {
-          source: {
-            id: sourceResult.insertedId.toHexString(),
-            title: source.title ?? null,
-            sourceType,
-            createdAt: createdAt.toISOString(),
-          },
-          memories: memories.map((memory, index) => ({
-            id: memoryResult.insertedIds[index].toHexString(),
-            kind: memory.kind,
-            title: memory.title,
-            content: memory.content,
-            sourceExcerpt: memory.sourceExcerpt,
-            importance: memory.importance,
-            tags: memory.tags,
-            people: memory.people,
-          })),
-        },
-        { status: 201 },
-      );
-    } catch (error) {
-      await database
-        .collection<SourceDocument>("sources")
-        .deleteOne({ _id: sourceResult.insertedId });
-      throw error;
-    }
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error("Source ingestion failed", error);
     return NextResponse.json(
