@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RecallDB
 
-## Getting Started
+RecallDB is a personal AI memory engine built for **c0mpiled-15 at Penn State**. Paste a messy note, conversation, or meeting transcript; RecallDB extracts durable memories, stores them with their original source in MongoDB Atlas, and retrieves them later through natural-language Vector Search.
 
-First, run the development server:
+## Why MongoDB
+
+MongoDB is the product's memory layer, not a replaceable persistence detail:
+
+- Original source documents and extracted memories are stored in linked Atlas collections.
+- MongoDB JSON Schema validation protects the document contract.
+- Every memory carries a locally generated 384-dimensional embedding.
+- Atlas Vector Search performs semantic retrieval through a named cosine-similarity index.
+- Grounded answers cite the retrieved memory and its exact source excerpt.
+
+```text
+Messy text
+   │
+   ├─ Luminal Cloud ──> structured memories
+   │                         │
+   │                         ├─ local embeddings (384d)
+   │                         │
+   └────────────────────> MongoDB Atlas
+                             ├─ sources
+Natural-language query ─────>├─ memories
+                             └─ Atlas Vector Search
+                                      │
+                                      └─ Luminal grounded answer + citations
+```
+
+## Features
+
+- AI extraction of people, ideas, decisions, tasks, and facts
+- Real MongoDB Atlas persistence with validated collections
+- Local sentence-transformer embeddings with no additional API credential
+- MongoDB Atlas Vector Search with relevance scores
+- Retrieval-augmented answers grounded in saved memories
+- Exact excerpts and original-source references
+- Responsive black-and-white demo interface
+
+## Stack
+
+- Next.js App Router, React, TypeScript, Tailwind CSS
+- MongoDB Atlas and the official Node.js driver
+- MongoDB Atlas Vector Search
+- Luminal Cloud (`deepseek-ai/DeepSeek-V4.1-Flash`)
+- Hugging Face Transformers.js (`Xenova/all-MiniLM-L6-v2`)
+
+## Local setup
+
+Requirements: Node.js 20+, npm, a MongoDB Atlas cluster, Atlas CLI, and a Luminal Cloud API key.
+
+```bash
+npm install
+cp .env.example .env.local
+```
+
+Fill in `.env.local`, then create the validated collections and standard indexes:
+
+```bash
+npm run db:setup
+```
+
+Create the Atlas Vector Search index using the checked-in definition:
+
+```bash
+atlas clusters search indexes create \
+  --clusterName <your-cluster-name> \
+  --projectId <your-project-id> \
+  --file atlas/vector-index.json
+```
+
+Backfill embeddings if the database already contains memories:
+
+```bash
+npm run db:backfill-embeddings
+```
+
+Start RecallDB:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The first embedding request downloads and caches the compact local model.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API routes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Route | Purpose |
+| --- | --- |
+| `GET /api/health` | Verify the live Atlas connection |
+| `POST /api/sources` | Extract, embed, and persist memories with their source |
+| `POST /api/search` | Run semantic retrieval through Atlas Vector Search |
+| `POST /api/answer` | Retrieve memories and generate a cited, grounded answer |
 
-## Learn More
+## Verification
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run lint
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The demo data is synthetic. Secrets stay in `.env.local`, which is excluded from Git.
