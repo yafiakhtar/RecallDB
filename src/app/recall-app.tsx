@@ -8,6 +8,45 @@ Maya Chen proposed making RecallDB a personal AI memory engine for messy notes a
 
 Jordan owns the vector search implementation and will finish it by 6:50 PM. Maya will record the 90-second demo video after search is working. The team agreed to skip authentication and external integrations for the demo.`;
 
+const CONNECTORS = [
+  {
+    name: "iMessage",
+    mark: "iM",
+    description: "Bring conversation context into your memory timeline.",
+    note: "Manual CSV/JSON import exists; direct connection is planned.",
+  },
+  {
+    name: "iCal",
+    mark: "iC",
+    description: "Remember events, attendees, locations, and decisions.",
+    note: "Manual .ics import exists; direct connection is planned.",
+  },
+  {
+    name: "Wispr Flow",
+    mark: "WF",
+    description: "Turn dictated thoughts into structured memories.",
+    note: "Connector placeholder only.",
+  },
+  {
+    name: "Google Calendar",
+    mark: "GC",
+    description: "Keep meetings and upcoming commitments searchable.",
+    note: "Connector placeholder only.",
+  },
+  {
+    name: "Outlook Calendar",
+    mark: "OC",
+    description: "Connect work events to the rest of your context.",
+    note: "Connector placeholder only.",
+  },
+  {
+    name: "Granola",
+    mark: "Gr",
+    description: "Carry meeting notes and outcomes into RecallDB.",
+    note: "Connector placeholder only.",
+  },
+] as const;
+
 type Memory = {
   id: string;
   kind: string;
@@ -129,7 +168,7 @@ function formatCalendarDate(value: string | null) {
 export default function RecallApp() {
   const [databaseOnline, setDatabaseOnline] = useState<boolean | null>(null);
   const [captureMode, setCaptureMode] = useState<
-    "text" | "calendar" | "messages"
+    "text" | "connectors" | "calendar" | "messages"
   >("text");
   const [title, setTitle] = useState("");
   const [sourceType, setSourceType] = useState("note");
@@ -544,8 +583,7 @@ export default function RecallApp() {
               <div className="flex gap-1 rounded-lg bg-[#f0f0ed] p-1 text-xs">
                 {([
                   ["text", "Paste Text"],
-                  ["calendar", "Import Calendar"],
-                  ["messages", "Import Messages"],
+                  ["connectors", "Connectors"],
                 ] as const).map(([mode, label]) => (
                   <button
                     key={mode}
@@ -638,6 +676,55 @@ export default function RecallApp() {
                   </p>
                 ) : null}
               </form>
+            ) : captureMode === "connectors" ? (
+              <div className="min-w-0 p-5 sm:p-6">
+                <div className="mb-5 flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-sm font-semibold">Connect your context</h3>
+                    <p className="mt-1 max-w-lg text-xs leading-5 text-black/45">
+                      Choose the services RecallDB should remember from. These
+                      connections are UI placeholders and do not transfer data yet.
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-full border border-black/10 bg-[#f5f5f2] px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider text-black/45">
+                    Preview
+                  </span>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {CONNECTORS.map((connector) => (
+                    <article
+                      key={connector.name}
+                      className="flex min-h-48 flex-col rounded-xl border border-black/10 bg-[#fafaf8] p-4"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="grid size-10 place-items-center rounded-lg border border-black/10 bg-white font-mono text-[11px] font-semibold tracking-tight">
+                          {connector.mark}
+                        </span>
+                        <span className="rounded-full border border-black/10 px-2 py-1 font-mono text-[9px] uppercase tracking-wider text-black/35">
+                          Planned
+                        </span>
+                      </div>
+                      <h4 className="mt-4 text-sm font-semibold">
+                        {connector.name}
+                      </h4>
+                      <p className="mt-1 text-xs leading-5 text-black/50">
+                        {connector.description}
+                      </p>
+                      <p className="mt-2 text-[10px] leading-4 text-black/35">
+                        {connector.note}
+                      </p>
+                      <button
+                        type="button"
+                        disabled
+                        className="mt-auto h-9 w-full cursor-not-allowed rounded-full border border-black/10 bg-white text-xs font-medium text-black/35"
+                      >
+                        Coming soon
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              </div>
             ) : captureMode === "calendar" ? (
               <div className="min-w-0 space-y-5 p-5 sm:p-6">
                 <div>
