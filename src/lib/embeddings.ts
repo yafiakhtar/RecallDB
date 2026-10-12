@@ -1,12 +1,25 @@
 import "server-only";
 
-import { pipeline } from "@huggingface/transformers";
+import { mkdir } from "node:fs/promises";
+
+import { env, pipeline } from "@huggingface/transformers";
 
 const EMBEDDING_MODEL = "Xenova/all-MiniLM-L6-v2";
+const TRANSFORMERS_CACHE_DIR = process.env.VERCEL
+  ? "/tmp/recalldb-transformers"
+  : undefined;
+
+if (TRANSFORMERS_CACHE_DIR) {
+  env.cacheDir = TRANSFORMERS_CACHE_DIR;
+}
 
 let extractorPromise: ReturnType<typeof createExtractor> | undefined;
 
-function createExtractor() {
+async function createExtractor() {
+  if (TRANSFORMERS_CACHE_DIR) {
+    await mkdir(TRANSFORMERS_CACHE_DIR, { recursive: true });
+  }
+
   return pipeline("feature-extraction", EMBEDDING_MODEL, { dtype: "q8" });
 }
 

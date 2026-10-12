@@ -17,6 +17,7 @@ type Memory = {
   importance: number;
   tags: string[];
   people: string[];
+  sourceLabel?: string;
 };
 
 type Reference = {
@@ -136,7 +137,6 @@ export default function RecallApp() {
   const [captureLoading, setCaptureLoading] = useState(false);
   const [captureError, setCaptureError] = useState("");
   const [memories, setMemories] = useState<Memory[]>([]);
-  const [memorySourceLabel, setMemorySourceLabel] = useState("Paste text");
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [selectedCalendarEvents, setSelectedCalendarEvents] = useState<Set<string>>(
     new Set(),
@@ -178,7 +178,6 @@ export default function RecallApp() {
     event.preventDefault();
     setCaptureLoading(true);
     setCaptureError("");
-    setMemories([]);
 
     try {
       const response = await fetch("/api/sources", {
@@ -195,8 +194,13 @@ export default function RecallApp() {
         throw new Error(payload.error ?? "Could not save this memory.");
       }
 
-      setMemories(payload.memories);
-      setMemorySourceLabel("Paste text");
+      setMemories((current) => [
+        ...payload.memories!.map((memory) => ({
+          ...memory,
+          sourceLabel: `${sourceType} · ${title.trim() || "Untitled source"}`,
+        })),
+        ...current,
+      ]);
     } catch (error) {
       setCaptureError(
         error instanceof Error ? error.message : "Something went wrong.",
@@ -213,7 +217,6 @@ export default function RecallApp() {
     setCalendarError("");
     setCalendarProgress("");
     setCalendarResult(null);
-    setMemories([]);
     if (!file) return;
 
     setCalendarPreviewLoading(true);
@@ -271,7 +274,6 @@ export default function RecallApp() {
     setCalendarImportLoading(true);
     setCalendarError("");
     setCalendarResult(null);
-    setMemories([]);
     const result: CalendarImportResult = { imported: 0, skipped: 0, failed: 0 };
     const importedMemories: Memory[] = [];
 
@@ -295,7 +297,12 @@ export default function RecallApp() {
           result.skipped += 1;
         } else {
           result.imported += 1;
-          importedMemories.push(...(payload.memories ?? []));
+          importedMemories.push(
+            ...(payload.memories ?? []).map((memory) => ({
+              ...memory,
+              sourceLabel: `Calendar · ${event.title}`,
+            })),
+          );
         }
       } catch {
         result.failed += 1;
@@ -303,8 +310,7 @@ export default function RecallApp() {
       setCalendarResult({ ...result });
     }
 
-    setMemories(importedMemories);
-    setMemorySourceLabel("Calendar");
+    setMemories((current) => [...importedMemories, ...current]);
     setCalendarProgress("");
     setCalendarImportLoading(false);
     if (result.failed > 0) {
@@ -321,7 +327,6 @@ export default function RecallApp() {
     setMessageError("");
     setMessageProgress("");
     setMessageResult(null);
-    setMemories([]);
     if (!file) return;
 
     setMessagePreviewLoading(true);
@@ -378,7 +383,6 @@ export default function RecallApp() {
     setMessageImportLoading(true);
     setMessageError("");
     setMessageResult(null);
-    setMemories([]);
     const result: CalendarImportResult = { imported: 0, skipped: 0, failed: 0 };
     const importedMemories: Memory[] = [];
 
@@ -406,7 +410,12 @@ export default function RecallApp() {
           result.skipped += 1;
         } else {
           result.imported += 1;
-          importedMemories.push(...(payload.memories ?? []));
+          importedMemories.push(
+            ...(payload.memories ?? []).map((memory) => ({
+              ...memory,
+              sourceLabel: `Messages · ${conversation.title}`,
+            })),
+          );
         }
       } catch {
         result.failed += 1;
@@ -414,8 +423,7 @@ export default function RecallApp() {
       setMessageResult({ ...result });
     }
 
-    setMemories(importedMemories);
-    setMemorySourceLabel("Messages");
+    setMemories((current) => [...importedMemories, ...current]);
     setMessageProgress("");
     setMessageImportLoading(false);
     if (result.failed > 0) {
@@ -897,7 +905,7 @@ export default function RecallApp() {
                     {memories.length} memories saved to Atlas
                   </h3>
                   <span className="font-mono text-[10px] uppercase tracking-wider text-black/40">
-                    {memorySourceLabel} · Embedded · Indexed
+                    This session · Embedded · Indexed
                   </span>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -917,6 +925,11 @@ export default function RecallApp() {
                       <h4 className="text-sm font-semibold leading-5">
                         {memory.title}
                       </h4>
+                      {memory.sourceLabel ? (
+                        <p className="mt-1 text-[10px] text-black/40">
+                          {memory.sourceLabel}
+                        </p>
+                      ) : null}
                       <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-black/50">
                         {memory.content}
                       </p>
